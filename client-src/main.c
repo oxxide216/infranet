@@ -58,7 +58,7 @@ int main(i32 argc, char **argv) {
     return 1;
   }
 
-  u32 return_code = *(u32 *) (header + PREFIX_SIZE);
+  u16 return_code = *(u16 *) (header + RETURN_CODE_OFFSET);
   if (return_code != INTPReturnCodeSuccess) {
     ERROR("%s\n", server_messages[return_code]);
     return 1;

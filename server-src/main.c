@@ -131,12 +131,12 @@ int main(i32 argc, char **argv) {
                                (struct sockaddr*) &address,
                                &address_size);
     if (client_socket < 0) {
-        ERROR("Failed to accept new connection\n");
-        return 1;
+      ERROR("Failed to accept new connection\n");
+      continue;
     }
 
     Str bytecode;
-    u32 return_code = get_route_bytecode(client_socket, &bytecode, &routes_data);
+    u16 return_code = get_route_bytecode(client_socket, &bytecode, &routes_data);
 
     u32 message_size;
     u8 *message;
