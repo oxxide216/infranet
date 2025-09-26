@@ -3,7 +3,8 @@
 #include <arpa/inet.h>
 
 #include "../intp-src/intp.h"
-#include "io.h"
+#include "aether-vm/vm.h"
+#include "aether-ir/deserializer.h"
 #include "shl_defs.h"
 #include "shl_log.h"
 #define SHL_STR_IMPLEMENTATION
@@ -15,16 +16,10 @@
 #define DEFAULT_PORT           8080
 
 int main(i32 argc, char **argv) {
-  if (argc < 2) {
-    ERROR("Input file was not provided\n");
-    return 1;
-  }
+  char *route = "";
 
-  Str bytecode = read_file(argv[1]);
-  if (bytecode.len == (u32) -1) {
-    ERROR("Could not open %s\n", argv[1]);
-    return 1;
-  }
+  if (argc > 1)
+    route = argv[1];
 
   i32 client_socket = socket(AF_INET, SOCK_STREAM, 0);
   if (client_socket < 0) {
@@ -48,26 +43,42 @@ int main(i32 argc, char **argv) {
     return 1;
   }
 
-  u32 message_len = HEADER_SIZE + bytecode.len;
-  char *message = malloc(message_len);
-  memcpy(message, PREFIX, sizeof(PREFIX));
-  ((u32 *) message)[sizeof(PREFIX) / sizeof(u32)] = bytecode.len;
-  memcpy(message + HEADER_SIZE, bytecode.ptr, bytecode.len);
+  u32 message_size;
+  void *message = create_message(0, strlen(route),
+                                 route, &message_size);
 
-  send(client_socket, message, message_len, 0);
+  send(client_socket, message, message_size, 0);
 
   free(message);
 
-  u32 return_code;
-  u32 len = read(client_socket, &return_code, 2);
-  if (len < 2 || return_code >= INTPReturnCodesCount) {
-    ERROR("Corrupted server return code\n");
-  } else {
-    if (return_code == 0)
-      INFO("%s\n", server_messages[return_code]);
-    else
-      ERROR("%s\n", server_messages[return_code]);
+  char header[HEADER_SIZE] = {0};
+  u32 len = read(client_socket, header, HEADER_SIZE);
+  if (len < HEADER_SIZE) {
+    ERROR("Corrupted server respone\n");
+    return 1;
   }
+
+  u32 return_code = *(u32 *) (header + PREFIX_SIZE);
+  if (return_code != INTPReturnCodeSuccess) {
+    ERROR("%s\n", server_messages[return_code]);
+    return 1;
+  }
+
+  u32 bytecode_size = *(u32 *) (header + PAYLOAD_SIZE_OFFSET);
+  char *bytecode = malloc(bytecode_size);
+
+  len = read(client_socket, bytecode, bytecode_size);
+  if (len < bytecode_size) {
+    ERROR("Corrupted bytecode\n");
+    return 1;
+  }
+
+  RcArena rc_arena = {0};
+  Ir ir = deserialize((u8 *) bytecode, bytecode_size, &rc_arena);
+  Intrinsics intrinsics = {0};
+  execute(&ir, argc, argv, &rc_arena, &intrinsics);
+
+  free(bytecode);
 
   close(client_socket);
 

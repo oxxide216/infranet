@@ -1,3 +1,3 @@
 #!/usr/bin/sh
 
-./build.sh "${@:1}" && ./ins
+./build.sh && ./aetherc temp.ac $1 && ./ins ${@:2}
