@@ -12,7 +12,7 @@
 #define VERSION_OFFSET      PREFIX_SIZE
 #define RETURN_CODE_OFFSET  (VERSION_OFFSET + sizeof(u16))
 #define PAYLOAD_SIZE_OFFSET (RETURN_CODE_OFFSET + sizeof(u16))
-#define PAYLOAD_OFFSET      HEADER_SIZE
+#define PAYLOAD_OFFSET      (PAYLOAD_SIZE_OFFSET + sizeof(u32))
 
 typedef enum {
   INTPReturnCodeSuccess = 0,

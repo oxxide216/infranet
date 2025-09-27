@@ -58,6 +58,11 @@ int main(i32 argc, char **argv) {
     return 1;
   }
 
+  if (!str_eq(STR(header, PREFIX_SIZE), STR_LIT(PREFIX))) {
+    ERROR("Corrupted bytecode\n");
+    return 1;
+  }
+
   u16 return_code = *(u16 *) (header + RETURN_CODE_OFFSET);
   if (return_code != INTPReturnCodeSuccess) {
     ERROR("%s\n", server_messages[return_code]);

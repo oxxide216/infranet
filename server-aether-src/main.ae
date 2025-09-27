@@ -1,0 +1,24 @@
+(fun create-message [version return-code payload]
+  (let message '')
+  (set message (+ message 'INTP'))
+  (set message (+ message (byte-16-to-str version)))
+  (set message (+ message (byte-16-to-str return-code)))
+  (set message (+ message (byte-32-to-str (len payload))))
+  (set message (+ message payload)))
+
+(if (< (len (get-args)) 2)
+  (str-println 'ERROR: no routes were provided')
+  (halt 1))
+
+(let bytecode (read-file (nth (get-args) 1)))
+
+(let server (create-server 8080))
+(if (unit? server)
+  (println 'ERROR: failed to accept connection')
+  (exit 1))
+
+(while true
+  (let client (accept-connection server 8080))
+  (let request (receive client))
+  (let response (create-message 1 0 bytecode))
+  (send client response))
