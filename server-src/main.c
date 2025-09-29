@@ -2,7 +2,6 @@
 #include <unistd.h>
 
 #include "../intp-src/intp.h"
-#include "aether-vm/vm.h"
 #include "aether-ir/deserializer.h"
 #include "io.h"
 #include "shl_defs.h"
@@ -108,6 +107,9 @@ int main(i32 argc, char **argv) {
     ERROR("Failed to open socket\n");
     return 1;
   }
+
+  i32 enable = 1;
+  setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable));
 
   struct sockaddr_in address;
   address.sin_family = AF_INET;
