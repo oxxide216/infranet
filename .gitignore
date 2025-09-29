@@ -1,5 +1,7 @@
 inc
 ins
 libs
+aetherc
+aether-vm
 server.ac
 test.ac

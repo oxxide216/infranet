@@ -1,6 +1,5 @@
 (fun create-message [version return-code payload]
-  (let message '')
-  (set message (+ message 'INTP'))
+  (let message 'INTP')
   (set message (+ message (byte-16-to-str version)))
   (set message (+ message (byte-16-to-str return-code)))
   (set message (+ message (byte-32-to-str (len payload))))
@@ -11,13 +10,35 @@
   (println 'ERROR: no routes were provided')
   (exit 1))
 
-(let file-path (nth (get-args) 2))
-(let bytecode (read-file file-path))
-(if (unit? bytecode)
-  (print 'ERROR: File ')
-  (print file-path)
-  (println ' was not found')
-  (exit 1))
+(fun join [parts]
+  (fun join-rec [parts-left is-first]
+    (if (&& parts-left (tail parts-left))
+      (let accumulator (+ (head parts-left) (join-rec (tail parts-left) false)))
+      (if is-first
+        accumulator
+       else
+        (+ ':' accumulator))
+     else
+      ''))
+  (join-rec parts true))
+
+(fun parse-routes [args_left]
+  (if args_left
+    (let parts (split (head args_left) ':'))
+    (let joined (join parts))
+    (let bytecode (read-file (last parts)))
+    (if (unit? bytecode)
+      (print 'File ')
+      (print (last parts)
+      (println ' was not found')
+      (exit 1)))
+
+    (let route { route: joined bytecode: bytecode })
+    (+ route (parse-routes (tail args_left)))
+   else
+    []))
+
+(let routes (parse-routes (tail (tail (get-args)))))
 
 (let server (create-server 8080))
 (if (unit? server)
@@ -31,6 +52,6 @@
     (exit 1))
 
   (let request (receive client))
-  (let response (create-message 1 0 bytecode))
+  (let response (create-message 1 0 (field (head routes) bytecode)))
   (send client response)
   (close-connection client))
