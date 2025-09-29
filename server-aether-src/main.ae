@@ -34,7 +34,10 @@
       (exit 1)))
 
     (let route { route: joined bytecode: bytecode })
-    (+ route (parse-routes (tail args_left)))
+    (let routes (+ route (parse-routes (tail args_left))))
+    (print 'INFO: initialized route ')
+    (println (last parts))
+    routes
    else
     []))
 
