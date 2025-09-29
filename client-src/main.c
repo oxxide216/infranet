@@ -5,6 +5,9 @@
 #include "../intp-src/intp.h"
 #include "aether-vm/vm.h"
 #include "aether-ir/deserializer.h"
+#ifdef IUI
+#include "iui/iui.h"
+#endif
 #include "shl_defs.h"
 #include "shl_log.h"
 #define SHL_STR_IMPLEMENTATION
@@ -14,6 +17,12 @@
 
 #define DEFAULT_SERVER_ADDRESS "127.0.0.1"
 #define DEFAULT_PORT           8080
+
+#ifdef IUI
+#define WINDOW_TITLE STR_LIT("Infranet client")
+#define WINDOW_WIDTH 640
+#define WINDOW_HEIGHT 480
+#endif
 
 int main(i32 argc, char **argv) {
   char *route = "";
@@ -81,6 +90,12 @@ int main(i32 argc, char **argv) {
   RcArena rc_arena = {0};
   Ir ir = deserialize((u8 *) bytecode, bytecode_size, &rc_arena);
   Intrinsics intrinsics = {0};
+
+#ifdef IUI
+  iui_init(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT);
+  iui_push_intrinsics(&intrinsics);
+#endif
+
   execute(&ir, argc, argv, &rc_arena, &intrinsics);
 
   free(bytecode);

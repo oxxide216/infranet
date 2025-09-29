@@ -1,0 +1,4 @@
+(fun main-loop []
+  (println 'Loop!'))
+
+(iui-main-loop main-loop)
