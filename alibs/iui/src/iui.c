@@ -4,17 +4,6 @@
 
 static Iui iui = {0};
 
-void iui_init(Str window_title,
-              u32 window_width,
-              u32 window_height) {
-  iui.winx = winx_init();
-  iui.window = winx_init_window(&iui.winx, window_title,
-                                window_width, window_height,
-                                WinxGraphicsModeOpenGL,
-                                NULL);
-  glass_init();
-}
-
 static bool process_event(WinxEvent *event) {
   if (event->kind == WinxEventKindQuit) {
     return false;
@@ -26,13 +15,24 @@ static bool process_event(WinxEvent *event) {
   return true;
 }
 
-bool iui_main_loop_intrinsic(Vm *vm) {
+bool main_loop_intrinsic(Vm *vm) {
   Value body = value_stack_pop(&vm->stack);
-  if (body.kind != ValueKindFunc)
-    PANIC("iui-main-loop: wrong argument kind\n");
+  Value height = value_stack_pop(&vm->stack);
+  Value width = value_stack_pop(&vm->stack);
+  Value title = value_stack_pop(&vm->stack);
+  if (title.kind != ValueKindString ||
+      width.kind != ValueKindInt ||
+      height.kind != ValueKindInt ||
+      body.kind != ValueKindFunc)
+    PANIC("iui-main-loop: wrong argument kinds\n");
 
+  iui.winx = winx_init();
+  iui.window = winx_init_window(&iui.winx, title.as.string,
+                                width.as._int, height.as._int,
+                                WinxGraphicsModeOpenGL,
+                                NULL);
 
-
+  glass_init();
   bool is_running = true;
   while (is_running) {
     WinxEvent event;
@@ -44,7 +44,6 @@ bool iui_main_loop_intrinsic(Vm *vm) {
 
     EXECUTE_FUNC(vm, body.as.func.name, 0, false);
 
-    glass_clear_screen(0.0, 0.0, 0.0, 0.5);
     winx_draw(&iui.window);
   }
 
@@ -53,8 +52,8 @@ bool iui_main_loop_intrinsic(Vm *vm) {
 
 void iui_push_intrinsics(Intrinsics *intrinsics) {
   Intrinsic main_loop = {
-    STR_LIT("iui-main-loop"), 1,
-    false, &iui_main_loop_intrinsic,
+    STR_LIT("iui-main-loop"), 4,
+    false, &main_loop_intrinsic,
   };
   DA_APPEND(*intrinsics, main_loop);
 }

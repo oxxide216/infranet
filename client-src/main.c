@@ -92,7 +92,6 @@ int main(i32 argc, char **argv) {
   Intrinsics intrinsics = {0};
 
 #ifdef IUI
-  iui_init(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT);
   iui_push_intrinsics(&intrinsics);
 #endif
 

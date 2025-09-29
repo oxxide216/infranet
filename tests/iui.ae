@@ -1,4 +1,4 @@
 (fun main-loop []
   (println 'Loop!'))
 
-(iui-main-loop main-loop)
+(iui-main-loop 'IUI window' 640 480 main-loop)

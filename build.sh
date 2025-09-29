@@ -31,7 +31,7 @@ if [[ -z $NOIUI ]]; then
   CLIENT_CFLAGS="$CLIENT_CFLAGS -DIUI -lGL -lGLEW -lX11 \
                  -Ialibs/iui/include -Ilibs/winx/include \
                  -Ilibs/glass/include"
-  CLIENT_SRC="$CLIENT_SRC $(find libs/iui/src -name "*.c") \
+  CLIENT_SRC="$CLIENT_SRC $(find alibs/iui/src -name "*.c") \
               $(find libs/winx/src -name "*.c") \
               $(find libs/glass/src -name "*.c")"
 fi
