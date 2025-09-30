@@ -1,4 +1,5 @@
 (fun main-loop []
-  (println 'Loop!'))
+  (iui-button 'Click me!'
+    (fun [] (println 'Clicked!'))))
 
 (iui-main-loop 'IUI window' 640 480 main-loop)
