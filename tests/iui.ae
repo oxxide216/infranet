@@ -1,5 +1,10 @@
+(use '../alibs/iui/iui.ae')
+
 (fun main-loop []
-  (iui-button 'Click me!'
-    (fun [] (println 'Clicked!'))))
+  (@iui-vbox
+    (@iui-button 'Click me!'
+      (println 'Clicked!'))
+    (@iui-button 'clickme'
+      (println 'clicked'))))
 
 (iui-main-loop 'IUI window' 640 480 main-loop)

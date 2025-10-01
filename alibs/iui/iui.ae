@@ -1,0 +1,5 @@
+(macro iui-vbox [...body]
+  (iui-vbox (fun [] body)))
+
+(macro iui-button [text ...body]
+  (iui-button text (fun [] body)))
