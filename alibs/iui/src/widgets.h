@@ -4,12 +4,6 @@
 #include "aether-vm/vm.h"
 #include "glass/math.h"
 
-#define iui_widgets_push_box_begin(widgets, margin, direction)                  \
-  iui_widgets_push_box_begin_id(widgets, margin, direction, __FILE__, __LINE__)
-
-#define iui_widgets_push_button(widgets, text, on_click)                  \
-  iui_widgets_push_button_id(widgets, text, on_click, __FILE__, __LINE__)
-
 typedef struct IuiWidget IuiWidget;
 
 typedef Da(IuiWidget *) IuiChildren;
@@ -18,6 +12,12 @@ typedef enum {
   IuiWidgetKindBox = 0,
   IuiWidgetKindButton,
 } IuiWidgetKind;
+
+typedef struct {
+  IuiWidgetKind kind;
+  u32           depth;
+  u32           child_index;
+} IuiWidgetId;
 
 typedef enum {
   IuiBoxDirectionVertical = 0,
@@ -43,6 +43,7 @@ typedef union {
 } IuiWidgetAs;
 
 struct IuiWidget {
+  IuiWidgetId    id;
   IuiWidgetKind  kind;
   IuiWidgetAs    as;
   Vec4           bounds;
@@ -60,16 +61,13 @@ typedef struct {
 } IuiWidgets;
 
 void iui_widgets_recompute_layout(IuiWidgets *widgets, Vec4 bounds);
-void iui_widgets_reset_layout(IuiWidgets *widgets);
 
 IuiWidget *box_get_child(IuiBox *box, u32 i);
 
-IuiWidget *iui_widgets_push_box_begin_id(IuiWidgets *widgets, Vec2 margin,
-                                         IuiBoxDirection direction,
-                                         char *file_path, u32 line);
+IuiWidget *iui_widgets_push_box_begin(IuiWidgets *widgets, Vec2 margin,
+                                      IuiBoxDirection direction);
 void iui_widgets_push_box_end(IuiWidgets *widgets);
-IuiWidget *iui_widgets_push_button_id(IuiWidgets *widgets, Str text,
-                                      ValueFunc on_click,
-                                      char *file_path, u32 line);
+IuiWidget *iui_widgets_push_button(IuiWidgets *widgets, Str text,
+                                   ValueFunc on_click);
 
 #endif // IUI_WIDGETS_H

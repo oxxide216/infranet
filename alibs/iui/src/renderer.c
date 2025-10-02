@@ -48,7 +48,7 @@ void iui_renderer_resize(IuiRenderer *renderer, f32 width, f32 height) {
                      vec2(width, height));
 }
 
-void iui_renderer_render_widget(IuiRenderer *renderer, IuiWidget *widget) {
+static void iui_renderer_render_widget(IuiRenderer *renderer, IuiWidget *widget) {
   switch (widget->kind) {
   case IuiWidgetKindBox: {
     iui_renderer_push_quad(renderer, widget->bounds, vec4(0.05, 0.05, 0.05, 0.2));
@@ -78,6 +78,7 @@ void iui_renderer_render_widgets(IuiRenderer *renderer, IuiWidgets *widgets) {
     renderer->general_indices.len = 0;
   }
 
+  glass_clear_screen(0.0, 0.0, 0.0, 0.0);
   glass_render_object(&renderer->general_object, NULL, 0);
 }
 

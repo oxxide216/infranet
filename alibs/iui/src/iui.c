@@ -55,7 +55,7 @@ bool main_loop_intrinsic(Vm *vm) {
     Vec4 bounds = { 0.0, 0.0, iui.window.width, iui.window.height };
     iui_widgets_recompute_layout(&iui.widgets, bounds);
     iui_renderer_render_widgets(&iui.renderer, &iui.widgets);
-    iui_widgets_reset_layout(&iui.widgets);
+    iui.widgets.is_dirty = false;
 
     winx_draw(&iui.window);
   }
@@ -100,7 +100,9 @@ bool button_intrinsic(Vm *vm) {
       on_click.kind != ValueKindFunc)
     PANIC("iui-button: wrong argument kinds\n");
 
-  IuiWidget *button = iui_widgets_push_button(&iui.widgets, text.as.string, on_click.as.func);
+  IuiWidget *button = iui_widgets_push_button(&iui.widgets,
+                                              text.as.string,
+                                              on_click.as.func);
 
   for (u32 i = 0; i < iui.events.len; ++i) {
     WinxEvent *event = iui.events.items + i;
@@ -112,6 +114,7 @@ bool button_intrinsic(Vm *vm) {
           button_release->x <= button->bounds.x + button->bounds.z &&
           button_release->y <= button->bounds.y + button->bounds.w) {
         EXECUTE_FUNC(vm, on_click.as.func.name, 0, false);
+        break;
       }
     }
   }

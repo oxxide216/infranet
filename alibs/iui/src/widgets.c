@@ -8,14 +8,13 @@ static void iui_widget_recompute_layout(IuiWidget *widget, Vec4 bounds, bool *is
                 widget->bounds.z != bounds.z ||
                 widget->bounds.w != bounds.w;
 
-  widget->bounds = bounds;
-
-  if (widget->kind != IuiWidgetKindBox ||
-      widget->as.box.children.len == 0 ||
-      !*is_dirty)
+  if (!*is_dirty)
     return;
 
-  INFO("Layout was recomputed!\n");
+  widget->bounds = bounds;
+
+  if (widget->kind != IuiWidgetKindBox || widget->as.box.children.len == 0)
+    return;
 
   Vec4 child_bounds = {
     bounds.x + widget->as.box.margin.x,
@@ -24,11 +23,6 @@ static void iui_widget_recompute_layout(IuiWidget *widget, Vec4 bounds, bool *is
     bounds.w - widget->as.box.margin.y * 2.0,
   };
 
-  if (child_bounds.w < 0.0)
-    child_bounds.w = 0.0;
-  if (child_bounds.z < 0.0)
-    child_bounds.z = 0.0;
-
   if (widget->as.box.direction == IuiBoxDirectionVertical) {
     child_bounds.w -= (widget->as.box.children.len - 1) * widget->as.box.margin.y;
     child_bounds.w /= widget->as.box.children.len;
@@ -36,6 +30,11 @@ static void iui_widget_recompute_layout(IuiWidget *widget, Vec4 bounds, bool *is
     child_bounds.z -= (widget->as.box.children.len - 1) * widget->as.box.margin.x;
     child_bounds.z /= widget->as.box.children.len;
   }
+
+  if (child_bounds.w < 0.0)
+    child_bounds.w = 0.0;
+  if (child_bounds.z < 0.0)
+    child_bounds.z = 0.0;
 
   for (u32 i = 0; i < widget->as.box.children.len; ++i) {
     iui_widget_recompute_layout(widget->as.box.children.items[i],
@@ -53,30 +52,26 @@ void iui_widgets_recompute_layout(IuiWidgets *widgets, Vec4 bounds) {
                               &widgets->is_dirty);
 }
 
-static void iui_widget_reset_layout(IuiWidget *widget) {
-  if (widget->kind == IuiWidgetKindBox) {
-    for (u32 i = 0; i < widget->as.box.children.len; ++i)
-      iui_widget_reset_layout(widget->as.box.children.items[i]);
-
-    widget->as.box.children.len = 0;
-  }
-}
-
-void iui_widgets_reset_layout(IuiWidgets *widgets) {
-  iui_widget_reset_layout(widgets->root_widget);
-
-  widgets->is_dirty = false;
+static bool iui_widget_id_eq(IuiWidgetId *a, IuiWidgetId *b) {
+  return a->kind == b->kind &&
+         a->depth == b->depth &&
+         a->child_index == b->child_index;
 }
 
 static IuiWidget *iui_widgets_get_widget(IuiWidgets *widgets,
-                                         char *file_path,
-                                         u32 line) {
+                                         IuiWidgetKind kind) {
   IuiWidget *result = NULL;
+
+  IuiWidgetId id;
+  id.kind = kind;
+  id.depth = widgets->boxes.len;
+  id.child_index = 0;
+  if (id.depth > 0)
+    id.child_index = widgets->boxes.items[id.depth - 1]->children.len;
 
   IuiWidget *widget = widgets->list;
   while (widget) {
-    if (strcmp(widget->file_path, file_path) == 0 &&
-        widget->line == line) {
+    if (iui_widget_id_eq(&widget->id, &id)) {
       result = widget;
       break;
     }
@@ -85,11 +80,10 @@ static IuiWidget *iui_widgets_get_widget(IuiWidgets *widgets,
   }
 
   if (!result) {
-    IuiWidget widget = {0};
-    widget.file_path = file_path;
-    widget.line = line;
     LL_PREPEND(widgets->list, widgets->list_end, IuiWidget);
-    *widgets->list_end = widget;
+    *widgets->list_end = (IuiWidget) {0};
+    widgets->list_end->id = id;
+    widgets->list_end->kind = kind;
     result = widgets->list_end;
   }
 
@@ -103,11 +97,9 @@ static IuiWidget *iui_widgets_get_widget(IuiWidgets *widgets,
   return result;
 }
 
-IuiWidget *iui_widgets_push_box_begin_id(IuiWidgets *widgets, Vec2 margin,
-                                         IuiBoxDirection direction,
-                                         char *file_path, u32 line) {
-  IuiWidget *widget = iui_widgets_get_widget(widgets, file_path, line);
-  widget->kind = IuiWidgetKindBox;
+IuiWidget *iui_widgets_push_box_begin(IuiWidgets *widgets, Vec2 margin,
+                                      IuiBoxDirection direction) {
+  IuiWidget *widget = iui_widgets_get_widget(widgets, IuiWidgetKindBox);
   widget->as.box.margin = margin;
   widget->as.box.direction = direction;
   widget->as.box.children = (IuiChildren) {0};
@@ -122,11 +114,9 @@ void iui_widgets_push_box_end(IuiWidgets *widgets) {
     --widgets->boxes.len;
 }
 
-IuiWidget *iui_widgets_push_button_id(IuiWidgets *widgets, Str text,
-                                      ValueFunc on_click,
-                                      char *file_path, u32 line) {
-  IuiWidget *widget = iui_widgets_get_widget(widgets, file_path, line);
-  widget->kind = IuiWidgetKindButton;
+IuiWidget *iui_widgets_push_button(IuiWidgets *widgets, Str text,
+                                   ValueFunc on_click) {
+  IuiWidget *widget = iui_widgets_get_widget(widgets, IuiWidgetKindButton);
   widget->as.button.text = text;
   widget->as.button.on_click = on_click;
 
