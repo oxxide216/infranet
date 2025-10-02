@@ -24,10 +24,10 @@ static void iui_widget_recompute_layout(IuiWidget *widget, Vec4 bounds, bool *is
   };
 
   if (widget->as.box.direction == IuiBoxDirectionVertical) {
-    child_bounds.w -= (widget->as.box.children.len - 1) * widget->as.box.margin.y;
+    child_bounds.w -= (widget->as.box.children.len - 1) * widget->as.box.spacing;
     child_bounds.w /= widget->as.box.children.len;
   } else {
-    child_bounds.z -= (widget->as.box.children.len - 1) * widget->as.box.margin.x;
+    child_bounds.z -= (widget->as.box.children.len - 1) * widget->as.box.spacing;
     child_bounds.z /= widget->as.box.children.len;
   }
 
@@ -41,9 +41,9 @@ static void iui_widget_recompute_layout(IuiWidget *widget, Vec4 bounds, bool *is
                                 child_bounds, is_dirty);
 
     if (widget->as.box.direction == IuiBoxDirectionVertical)
-      child_bounds.y += child_bounds.w + widget->as.box.margin.y;
+      child_bounds.y += child_bounds.w + widget->as.box.spacing;
     else
-      child_bounds.x += child_bounds.z + widget->as.box.margin.x;
+      child_bounds.x += child_bounds.z + widget->as.box.spacing;
   }
 }
 
@@ -98,9 +98,10 @@ static IuiWidget *iui_widgets_get_widget(IuiWidgets *widgets,
 }
 
 IuiWidget *iui_widgets_push_box_begin(IuiWidgets *widgets, Vec2 margin,
-                                      IuiBoxDirection direction) {
+                                      f32 spacing, IuiBoxDirection direction) {
   IuiWidget *widget = iui_widgets_get_widget(widgets, IuiWidgetKindBox);
   widget->as.box.margin = margin;
+  widget->as.box.spacing = spacing;
   widget->as.box.direction = direction;
   widget->as.box.children = (IuiChildren) {0};
 

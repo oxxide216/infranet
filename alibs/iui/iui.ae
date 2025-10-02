@@ -1,5 +1,5 @@
-(macro iui-vbox [...body]
-  (iui-vbox (fun [] body)))
+(macro iui-vbox [margin-x margin-y spacing ...body]
+  (iui-vbox margin-x margin-y spacing(fun [] body)))
 
 (macro iui-button [text ...body]
   (iui-button text (fun [] body)))

@@ -26,6 +26,7 @@ typedef enum {
 
 typedef struct {
   Vec2            margin;
+  f32             spacing;
   IuiBoxDirection direction;
   IuiChildren     children;
 } IuiBox;
@@ -65,7 +66,7 @@ void iui_widgets_recompute_layout(IuiWidgets *widgets, Vec4 bounds);
 IuiWidget *box_get_child(IuiBox *box, u32 i);
 
 IuiWidget *iui_widgets_push_box_begin(IuiWidgets *widgets, Vec2 margin,
-                                      IuiBoxDirection direction);
+                                      f32 spacing, IuiBoxDirection direction);
 void iui_widgets_push_box_end(IuiWidgets *widgets);
 IuiWidget *iui_widgets_push_button(IuiWidgets *widgets, Str text,
                                    ValueFunc on_click);

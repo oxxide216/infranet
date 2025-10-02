@@ -1,7 +1,7 @@
 (use '../alibs/iui/iui.ae')
 
 (fun main-loop []
-  (@iui-vbox
+  (@iui-vbox 150.0 150.0 75.0
     (@iui-button 'Click me!'
       (println 'Clicked!'))
     (@iui-button 'clickme'

@@ -65,11 +65,18 @@ bool main_loop_intrinsic(Vm *vm) {
 
 bool vbox_intrinsic(Vm *vm) {
   Value body = value_stack_pop(&vm->stack);
-  if (body.kind != ValueKindFunc)
-    PANIC("iui-vbox: wrong argument kind\n");
+  Value spacing = value_stack_pop(&vm->stack);
+  Value margin_y = value_stack_pop(&vm->stack);
+  Value margin_x = value_stack_pop(&vm->stack);
 
-  iui_widgets_push_box_begin(&iui.widgets, vec2(25.0, 25.0),
-                             IuiBoxDirectionVertical);
+  if (margin_x.kind != ValueKindFloat ||
+      margin_y.kind != ValueKindFloat ||
+      spacing.kind != ValueKindFloat ||
+      body.kind != ValueKindFunc)
+    PANIC("iui-vbox: wrong argument kinds\n");
+
+  iui_widgets_push_box_begin(&iui.widgets, vec2(margin_x.as._float, margin_y.as._float),
+                             spacing.as._float, IuiBoxDirectionVertical);
 
   EXECUTE_FUNC(vm, body.as.func.name, 0, false);
 
@@ -80,11 +87,17 @@ bool vbox_intrinsic(Vm *vm) {
 
 bool hbox_intrinsic(Vm *vm) {
   Value body = value_stack_pop(&vm->stack);
-  if (body.kind != ValueKindFunc)
-    PANIC("iui-hbox: wrong argument kind\n");
+  Value spacing = value_stack_pop(&vm->stack);
+  Value margin_y = value_stack_pop(&vm->stack);
+  Value margin_x = value_stack_pop(&vm->stack);
+  if (margin_x.kind != ValueKindFloat ||
+      margin_y.kind != ValueKindFloat ||
+      spacing.kind != ValueKindFloat ||
+      body.kind != ValueKindFunc)
+    PANIC("iui-hbox: wrong argument kinds\n");
 
-  iui_widgets_push_box_begin(&iui.widgets, vec2(25.0, 25.0),
-                             IuiBoxDirectionHorizontal);
+  iui_widgets_push_box_begin(&iui.widgets, vec2(margin_x.as._float, margin_y.as._float),
+                             spacing.as._float, IuiBoxDirectionHorizontal);
 
   EXECUTE_FUNC(vm, body.as.func.name, 0, false);
 
@@ -136,13 +149,13 @@ void iui_push_intrinsics(Intrinsics *intrinsics) {
   DA_APPEND(*intrinsics, button);
 
   Intrinsic vbox = {
-    STR_LIT("iui-vbox"), 1,
+    STR_LIT("iui-vbox"), 4,
     false, &vbox_intrinsic,
   };
   DA_APPEND(*intrinsics, vbox);
 
   Intrinsic hbox = {
-    STR_LIT("iui-hbox"), 1,
+    STR_LIT("iui-hbox"), 4,
     false, &hbox_intrinsic,
   };
   DA_APPEND(*intrinsics, hbox);
