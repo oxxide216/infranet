@@ -48,8 +48,7 @@ struct IuiWidget {
   IuiWidgetKind  kind;
   IuiWidgetAs    as;
   Vec4           bounds;
-  char          *file_path;
-  u32            line;
+  bool           use_abs_bounds;
   IuiWidget     *next;
 };
 
@@ -58,12 +57,13 @@ typedef struct {
   IuiWidget *list;
   IuiWidget *list_end;
   IuiBoxes   boxes;
+  Vec4       abs_bounds;
+  bool       use_abs_bounds;
   bool       is_dirty;
 } IuiWidgets;
 
 void iui_widgets_recompute_layout(IuiWidgets *widgets, Vec4 bounds);
-
-IuiWidget *box_get_child(IuiBox *box, u32 i);
+void iui_widgets_abs_bounds(IuiWidgets *widgets, Vec4 bounds);
 
 IuiWidget *iui_widgets_push_box_begin(IuiWidgets *widgets, Vec2 margin,
                                       f32 spacing, IuiBoxDirection direction);

@@ -1,7 +1,14 @@
 (use '../alibs/iui/iui.ae')
 
-(fun main-loop []
-  (@iui-vbox 150.0 150.0 75.0
+(let menu-size { x: 250.0 y: 175.0 })
+
+(fun main-loop [window-size]
+  (iui-abs-bounds
+    (/ (- (field window-size x) (field menu-size x)) 2.0)
+    (/ (- (field window-size y) (field menu-size y)) 2.0)
+    (field menu-size x)
+    (field menu-size y))
+  (@iui-vbox 0.0 0.0 25.0
     (@iui-button 'Click me!'
       (println 'Clicked!'))
     (@iui-button 'clickme'

@@ -50,7 +50,29 @@ bool main_loop_intrinsic(Vm *vm) {
         break;
     }
 
-    EXECUTE_FUNC(vm, body.as.func.name, 0, false);
+    Record window_size = {0};
+
+    NamedValue width = {
+      STR_LIT("x"),
+      {
+        ValueKindFloat,
+        { ._float = iui.window.width },
+      }
+    };
+    DA_APPEND(window_size, width);
+
+    NamedValue height = {
+      STR_LIT("y"),
+      {
+        ValueKindFloat,
+        { ._float =  iui.window.height },
+      }
+    };
+    DA_APPEND(window_size, height);
+
+    value_stack_push_record(&vm->stack, window_size);
+
+    EXECUTE_FUNC(vm, body.as.func.name, 1, false);
 
     Vec4 bounds = { 0.0, 0.0, iui.window.width, iui.window.height };
     iui_widgets_recompute_layout(&iui.widgets, bounds);
@@ -135,6 +157,28 @@ bool button_intrinsic(Vm *vm) {
   return true;
 }
 
+bool abs_bounds_intrinsic(Vm *vm) {
+  Value height = value_stack_pop(&vm->stack);
+  Value width = value_stack_pop(&vm->stack);
+  Value y = value_stack_pop(&vm->stack);
+  Value x = value_stack_pop(&vm->stack);
+  if (x.kind != ValueKindFloat ||
+      y.kind != ValueKindFloat ||
+      width.kind != ValueKindFloat ||
+      height.kind != ValueKindFloat)
+    PANIC("iui-abs: wrong argument kinds\n");
+
+  Vec4 bounds = {
+    x.as._float,
+    y.as._float,
+    width.as._float,
+    height.as._float,
+  };
+  iui_widgets_abs_bounds(&iui.widgets, bounds);
+
+  return true;
+}
+
 void iui_push_intrinsics(Intrinsics *intrinsics) {
   Intrinsic main_loop = {
     STR_LIT("iui-main-loop"), 4,
@@ -159,4 +203,10 @@ void iui_push_intrinsics(Intrinsics *intrinsics) {
     false, &hbox_intrinsic,
   };
   DA_APPEND(*intrinsics, hbox);
+
+  Intrinsic abs_bounds = {
+    STR_LIT("iui-abs-bounds"), 4,
+    false, &abs_bounds_intrinsic,
+  };
+  DA_APPEND(*intrinsics, abs_bounds);
 }

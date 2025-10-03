@@ -11,16 +11,17 @@ static void iui_widget_recompute_layout(IuiWidget *widget, Vec4 bounds, bool *is
   if (!*is_dirty)
     return;
 
-  widget->bounds = bounds;
+  if (!widget->use_abs_bounds)
+    widget->bounds = bounds;
 
   if (widget->kind != IuiWidgetKindBox || widget->as.box.children.len == 0)
     return;
 
   Vec4 child_bounds = {
-    bounds.x + widget->as.box.margin.x,
-    bounds.y + widget->as.box.margin.y,
-    bounds.z - widget->as.box.margin.x * 2.0,
-    bounds.w - widget->as.box.margin.y * 2.0,
+    widget->bounds.x + widget->as.box.margin.x,
+    widget->bounds.y + widget->as.box.margin.y,
+    widget->bounds.z - widget->as.box.margin.x * 2.0,
+    widget->bounds.w - widget->as.box.margin.y * 2.0,
   };
 
   if (widget->as.box.direction == IuiBoxDirectionVertical) {
@@ -50,6 +51,11 @@ static void iui_widget_recompute_layout(IuiWidget *widget, Vec4 bounds, bool *is
 void iui_widgets_recompute_layout(IuiWidgets *widgets, Vec4 bounds) {
   iui_widget_recompute_layout(widgets->root_widget, bounds,
                               &widgets->is_dirty);
+}
+
+void iui_widgets_abs_bounds(IuiWidgets *widgets, Vec4 bounds) {
+  widgets->use_abs_bounds = true;
+  widgets->abs_bounds = bounds;
 }
 
 static bool iui_widget_id_eq(IuiWidgetId *a, IuiWidgetId *b) {
@@ -92,6 +98,12 @@ static IuiWidget *iui_widgets_get_widget(IuiWidgets *widgets,
     DA_APPEND(*children, result);
   } else {
     widgets->root_widget = result;
+  }
+
+  if (widgets->use_abs_bounds) {
+    widgets->use_abs_bounds = false;
+    result->use_abs_bounds = true;
+    result->bounds = widgets->abs_bounds;
   }
 
   return result;
