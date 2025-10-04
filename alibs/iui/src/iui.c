@@ -157,6 +157,18 @@ bool button_intrinsic(Vm *vm) {
   return true;
 }
 
+bool text_intrinsic(Vm *vm) {
+  Value center = value_stack_pop(&vm->stack);
+  Value text = value_stack_pop(&vm->stack);
+  if (text.kind != ValueKindString ||
+      center.kind != ValueKindBool)
+    PANIC("iui-text: wrong argument kinds\n");
+
+  iui_widgets_push_text(&iui.widgets, text.as.string, center.as._bool);
+
+  return true;
+}
+
 bool abs_bounds_intrinsic(Vm *vm) {
   Value height = value_stack_pop(&vm->stack);
   Value width = value_stack_pop(&vm->stack);
@@ -186,12 +198,6 @@ void iui_push_intrinsics(Intrinsics *intrinsics) {
   };
   DA_APPEND(*intrinsics, main_loop);
 
-  Intrinsic button = {
-    STR_LIT("iui-button"), 2,
-    false, &button_intrinsic,
-  };
-  DA_APPEND(*intrinsics, button);
-
   Intrinsic vbox = {
     STR_LIT("iui-vbox"), 4,
     false, &vbox_intrinsic,
@@ -203,6 +209,18 @@ void iui_push_intrinsics(Intrinsics *intrinsics) {
     false, &hbox_intrinsic,
   };
   DA_APPEND(*intrinsics, hbox);
+
+  Intrinsic button = {
+    STR_LIT("iui-button"), 2,
+    false, &button_intrinsic,
+  };
+  DA_APPEND(*intrinsics, button);
+
+  Intrinsic text = {
+    STR_LIT("iui-text"), 2,
+    false, &text_intrinsic,
+  };
+  DA_APPEND(*intrinsics, text);
 
   Intrinsic abs_bounds = {
     STR_LIT("iui-abs-bounds"), 4,

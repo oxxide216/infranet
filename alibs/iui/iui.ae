@@ -6,3 +6,6 @@
 
 (macro iui-button [text ...body]
   (iui-button text (fun [] body)))
+
+(macro iui-text [text center]
+  (iui-text text center))

@@ -11,6 +11,7 @@ typedef Da(IuiWidget *) IuiChildren;
 typedef enum {
   IuiWidgetKindBox = 0,
   IuiWidgetKindButton,
+  IuiWidgetKindText,
 } IuiWidgetKind;
 
 typedef struct {
@@ -38,9 +39,15 @@ typedef struct {
   ValueFunc on_click;
 } IuiButton;
 
+typedef struct {
+  Str  text;
+  bool center;
+} IuiText;
+
 typedef union {
   IuiBox    box;
   IuiButton button;
+  IuiText   text;
 } IuiWidgetAs;
 
 struct IuiWidget {
@@ -70,5 +77,6 @@ IuiWidget *iui_widgets_push_box_begin(IuiWidgets *widgets, Vec2 margin,
 void iui_widgets_push_box_end(IuiWidgets *widgets);
 IuiWidget *iui_widgets_push_button(IuiWidgets *widgets, Str text,
                                    ValueFunc on_click);
+IuiWidget *iui_widgets_push_text(IuiWidgets *widgets, Str text, bool center);
 
 #endif // IUI_WIDGETS_H

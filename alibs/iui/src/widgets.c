@@ -135,3 +135,11 @@ IuiWidget *iui_widgets_push_button(IuiWidgets *widgets, Str text,
 
   return widget;
 }
+
+IuiWidget *iui_widgets_push_text(IuiWidgets *widgets, Str text, bool center) {
+  IuiWidget *widget = iui_widgets_get_widget(widgets, IuiWidgetKindText);
+  widget->as.text.text = text;
+  widget->as.text.center = center;
+
+  return widget;
+}
