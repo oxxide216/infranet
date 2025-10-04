@@ -27,16 +27,5 @@ if [[ -z $NDEBUG ]]; then
     $AETHER_VM_SRC $AETHER_IR_SRC
 fi
 
-if [[ -z $NOIUI ]]; then
-  CLIENT_CFLAGS="$CLIENT_CFLAGS -DIUI -lGL -lGLEW -lX11 -lm \
-                 -Ialibs/iui/include -Ilibs/winx/include \
-                 -Ilibs/glass/include"
-  CLIENT_SRC="$CLIENT_SRC $(find alibs/iui/src -name "*.c") \
-              $(find libs/winx/src -name "*.c") \
-              $(find libs/glass/src -name "*.c")"
-
-  xxd -i alibs/iui/fonts/JetBrainsMono-Regular.ttf > alibs/iui/fonts/JetBrainsMono-Regular.h
-fi
-
 cc -o inc $CLIENT_CFLAGS $LDFLAGS "${@:1}" $CLIENT_SRC $INTP_SRC $AETHER_IR_SRC $AETHER_VM_SRC
 cc -o ins $SERVER_CFLAGS $LDFLAGS "${@:1}" $SERVER_SRC $INTP_SRC $AETHER_IR_SRC $AETHER_VM_SRC
