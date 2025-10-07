@@ -1,12 +1,6 @@
-[submodule "libs/lexgen"]
-	path = libs/lexgen
-	url = https://github.com/oxxide216/lexgen
-[submodule "libs/winx"]
-	path = libs/winx
-	url = https://github.com/oxxide216/winx
-[submodule "libs/glass"]
-	path = libs/glass
-	url = https://github.com/oxxide216/glass
 [submodule "libs/aether"]
 	path = libs/aether
 	url = https://github.com/oxxide216/aether
+[submodule "libs/lexgen"]
+	path = libs/lexgen
+	url = https://github.com/oxxide216/lexgen

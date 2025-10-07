@@ -1,0 +1,111 @@
+(let DEFAULT-INTP-VERSION 1)
+
+(let RETURN-CODE-SUCCESS 0)
+(let RETURN-CODE-CORRUPTED-HEADER 1)
+(let RETURN-CODE-WRONG-ROUTE-SIZE 2)
+(let RETURN-CODE-ROUTE-WAS-NOT-FOUND 3)
+
+(fun create-message [version return-code payload]
+  (let message 'INTP')
+  (set message (+ message (byte-16-to-str version)))
+  (set message (+ message (byte-16-to-str return-code)))
+  (set message (+ message (byte-32-to-str (len payload))))
+  (set message (+ message payload))
+  message)
+
+(fun parse-message [message]
+  (let message-len (len message))
+
+  (let parsed (eat-byte-32 message))
+  (if (!= (head parsed) (head (eat-byte-32 'INTP')))
+    (ret { return-code: RETURN-CODE-CORRUPTED-HEADER message: '' }))
+
+  (set parsed (eat-byte-32 (nth parsed 1)))
+
+  (set parsed (eat-byte-32 (nth parsed 1)))
+  (if (!= (+ (head parsed) 12) message-len)
+    (println (+ (head parsed) 12))
+    (println message-len)
+    (ret { return-code: RETURN-CODE-WRONG-ROUTE-SIZE message: '' }))
+
+  { return-code: RETURN-CODE-SUCCESS message: (nth parsed 1) })
+
+(fun join [parts]
+  (fun join-rec [parts-left is-first]
+    (if parts-left
+      (let accumulator (+ (head parts-left) (join-rec (tail parts-left) false)))
+      (if is-first
+        accumulator
+       else
+        (+ ':' accumulator))
+     else
+      ''))
+
+  (join-rec parts true))
+
+(fun remove-last [list]
+  (let last (last list))
+  (filter (fun [element] (!= element last)) list))
+
+(fun parse-routes [args_left]
+  (if args_left
+    (let parts (split (head args_left) ':'))
+    (let joined (join (remove-last parts)))
+    (let bytecode (read-file (last parts)))
+    (if (unit? bytecode)
+      (print 'File ')
+      (print (last parts)
+      (println ' was not found')
+      (exit 1)))
+
+    (let route { route: joined bytecode: bytecode })
+
+    (print 'INFO: initialized route ')
+    (print (join (remove-last parts)))
+    (print ' with ')
+    (println (last parts))
+
+    (+ route (parse-routes (tail args_left)))
+   else
+    []))
+
+(fun get-bytecode [routes route]
+  (if (is-empty routes)
+    []
+   elif (== (field (head routes) route) route)
+    (field (head routes) bytecode)
+   else
+    (get-bytecode (tail routes) route)))
+
+(if (< (len (get-args)) 3)
+  (println 'ERROR: no routes were provided')
+  (exit 1))
+
+(let routes (parse-routes (tail (tail (get-args)))))
+
+(let server (create-server 8080))
+(if (unit? server)
+  (println 'ERROR: failed to create server')
+  (exit 1))
+
+(while true
+  (let client (accept-connection server 8080))
+  (if (unit? client)
+    (println 'ERROR: failed to accept new connection')
+    (exit 1))
+
+  (let request (parse-message (receive client)))
+  (if (!= (field request return-code) RETURN-CODE-SUCCESS)
+    (let response (create-message DEFAULT-INTP-VERSION (field request return-code) ''))
+    (send client response)
+    (close-connection client)
+   else
+    (let bytecode (get-bytecode routes (field request message)))
+    (if (! bytecode)
+      (let response (create-message DEFAULT-INTP-VERSION RETURN-CODE-ROUTE-WAS-NOT-FOUND ''))
+      (send client response)
+      (close-connection client)
+     else
+      (let response (create-message DEFAULT-INTP-VERSION RETURN-CODE-SUCCESS bytecode))
+      (send client response)
+      (close-connection client))))
