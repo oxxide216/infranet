@@ -1,0 +1,36 @@
+(let DEFAULT-INTP-VERSION 1)
+
+(let RETURN-CODE-SUCCESS 0)
+(let RETURN-CODE-CORRUPTED-HEADER 1)
+(let RETURN-CODE-WRONG-ROUTE-SIZE 2)
+(let RETURN-CODE-ROUTE-WAS-NOT-FOUND 3)
+
+(let HEADER-SIZE 12)
+
+(fun return-code-to-str [return-code]
+  (nth ['success'
+        'corrupted header'
+        'wrong route size'
+        'route was not found'] return-code))
+
+(fun create-header [version return-code payload-len]
+  (let header 'INTP')
+  (set header (+ header (byte-16-to-str version)))
+  (set header (+ header (byte-16-to-str return-code)))
+  (set header (+ header (byte-32-to-str payload-len)))
+  header)
+
+(fun parse-header [header]
+  (let parsed (eat-byte-32 header))
+  (if (!= (head parsed) (head (eat-byte-32 'INTP')))
+    (ret { return-code: RETURN-CODE-CORRUPTED-HEADER payload-size: 0 }))
+
+  (set parsed (eat-byte-16 (nth parsed 1)))
+
+  (set parsed (eat-byte-16 (nth parsed 1)))
+  (let return-code (head parsed))
+
+  (set parsed (eat-byte-32 (nth parsed 1)))
+  (let payload-size (head parsed))
+
+  { return-code: return-code payload-size: payload-size })

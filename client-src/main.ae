@@ -1,0 +1,27 @@
+(use '../common-src/common.ae')
+
+(fun get-bytecode-from-server [address port route]
+  (let client (create-client address port))
+  (if (unit? client)
+    (println '[ERROR] Failed to connect to server')
+    (exit 1))
+
+  (send client (create-header DEFAULT-INTP-VERSION 0 (len route)))
+  (send client route)
+
+  (let header (parse-header (receive-size client HEADER-SIZE)))
+  (if (!= (field header return-code) RETURN-CODE-SUCCESS)
+    (print '[ERROR] Server returned error: ')
+    (println (return-code-to-str (field header return-code)))
+    (exit 1))
+
+  (let bytecode (receive-size client (field header payload-size)))
+  (close-connection client)
+  bytecode)
+
+(let route (if (> (len (get-args)) 2)
+            (nth (get-args) 2)
+            else ''))
+
+(let bytecode (get-bytecode-from-server '127.0.0.1' 8080 route))
+(eval bytecode)
